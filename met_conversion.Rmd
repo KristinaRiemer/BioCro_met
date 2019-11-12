@@ -1,0 +1,56 @@
+---
+title: "Conversion of Meteorological .nc to Pecan Format"
+output: html_document
+---
+
+
+### TODO
+- Compare `clm_version.nc` to `pecan_version_example.nc`
+- Change column/header names to match
+- Rescale values by 10? 
+
+#### Comparison of variable names and units between two files
+
+Pecan var name    | Pecan var unit  | CLM var name | CLM var unit    | convert name? | convert unit?
+----------------- | --------------- | ------------ | ------------    | ------------- | -------------
+longitude         | degrees_east    | LONGXY       | degrees E       | Y             | N?
+latitude          | degrees_north   | LATIXY       | degrees N       | Y             | N?
+time              | days since 1700 | time         | days since 2000 | N             | Y
+air_temperature   | K               | TBOT         | K               | ?             | N
+relative_humidity | %               | RH           | %               | Y             | N
+specific_humidity | kg kg-1         |              |                 |               |
+surface_downwell  | W m-2           | FSDS         | W/m2            | Y             | N?
+
+#### Explore CLM version met file
+
+```{r}
+library(ncdf4)
+
+clm_met <- nc_open("clm_version.nc")
+print(clm_met)
+
+clm_lati_var <- ncvar_get(clm_met, "LATIXY")
+clm_long_var <- ncvar_get(clm_met, "LONGXY")
+clm_time_var <- ncvar_get(clm_met, "time") 
+clm_temp_var <- ncvar_get(clm_met, "TBOT")
+clm_solar_var <- ncvar_get(clm_met, "FSDS")
+```
+
+#### Explore CLM version met file
+
+```{r}
+pecan_met_ex <- nc_open("pecan_version_example.nc")
+print(pecan_met_ex)
+
+pecan_lati_var <- ncvar_get(pecan_met_ex, "latitude")
+pecan_long_var <- ncvar_get(pecan_met_ex, "longitude")
+pecan_time_var <- ncvar_get(pecan_met_ex, "time")
+pecan_temp_var <- ncvar_get(pecan_met_ex, "air_temperature")
+pecan_solar_var <- ncvar_get(pecan_met_ex, "surface_downwelling_shortwave_flux_in_air")
+```
+
+#### Met file structure comparison
+
+Both have weather data for single location (one lat-lon coordinate) and time range is a year, though Pecan file has values recorded 3x as often. 
+
+Solar/flux has very different values. CLM is 0-200 while Pecan is 10e36. Does latter need to be converted because of decimals? 
